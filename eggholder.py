@@ -7,7 +7,7 @@ from math import *
 MIN = -512.0
 MAX = 512.0
 
-POPULATION_NUMBER = 400
+POPULATION_NUMBER = 50
 
 def EggHolder_Eval(x,y):
     return (-1*(y+47))*sin(sqrt(abs((x/2) + (y+47)))) - (x * sin(sqrt(abs(x - (y+47)))))
@@ -41,10 +41,19 @@ def repr(m1, m2, alpha=0.5):
     return [x, y]
 
 
-def mutate(m, change=50, mutation_rate=0.04):
+def mutate(m, change=5, mutation_rate=0.35):
+    if random.random() < mutation_rate:
+        sel = 0
+        sign = random.choice([1,-1])
+
+        m[sel] += (sign*change)
+        if m[sel] > 512:
+            m[sel] = 512
+        elif m[sel] < -512:
+            m[sel] = -512
 
     if random.random() < mutation_rate:
-        sel = random.randint(0,1)
+        sel = 1
         sign = random.choice([1,-1])
 
         m[sel] += (sign*change)
@@ -56,22 +65,28 @@ def mutate(m, change=50, mutation_rate=0.04):
 
 
 
-def selection(population):
+def selection(population, generation):
     new_gen = []
     rankSort(population)
-    #elite = population[0:int(len(population) / 5)]
-    #new_gen += elite
+    elite = population[0:int(len(population) / 3)]
+    new_gen += elite
     num = len(new_gen)
 
-    successful = population[0:int(len(population) / 3)]
-    while num < POPULATION_NUMBER:
+    successful = population[0:int(len(population) / 2)]
+    while num < POPULATION_NUMBER - 2:
         m1 = successful[(random.randrange(len(successful)))]
         m2 = successful[(random.randrange(len(successful)))]
         new_gen += [repr(m1, m2)]
         num += 1
 
-    for i in range(0, len(new_gen)):
-        new_gen[i] = mutate(new_gen[i])
+    start = len(elite)
+    if generation > 1000:
+        start = 0
+    for i in range(len(elite), len(new_gen)):
+        new_gen[i] = mutate(new_gen[i], change=min(150, 0.1* generation))
+
+    new_gen += init_population(2)
+
 
     return new_gen
 
@@ -89,20 +104,12 @@ best_x, best_y = pop[0]
 
 gen = 0
 
-while (abs(512 - best_x) > 3 or abs(404.23 - best_y) > 3) and gen < 10000:
-    pop = selection(pop)
+while (abs(512 - best_x) > .01 or abs(404.23 - best_y) > .01) and gen < 100000:
+    pop = selection(pop, gen)
     rankSort(pop)
     best_x, best_y = pop[0]
     gen += 1
     print(f"GENERATION: {gen} -> Best X: {best_x}, Best Y: {best_y}")
-"""
-
-
-"""
-if gen > 1000:
-    print(pop)
-
-
 
 
 
